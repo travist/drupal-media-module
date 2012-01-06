@@ -127,11 +127,18 @@ function mediafield_field_formatter_settings_summary($field, $instance, $view_mo
  * Implements hook_field_formatter_view().
  */
 function mediafield_field_formatter_view($entity_type, $entity, $field, $instance, $langcode, $items, $display) {
+  $element = array();
+
   $files = array();
   foreach ($items as $delta => $item) {
     $files[$item['fid']] = $item['file'];
   }
-  return file_view_multiple($files, $display['settings']['file_view_mode'], 0, $langcode);
+
+  if (!empty($files)) {
+    $element = file_view_multiple($files, $display['settings']['file_view_mode'], 0, $langcode);
+  }
+
+  return $element;
 }
 
 /**
