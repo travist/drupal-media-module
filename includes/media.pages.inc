@@ -29,27 +29,26 @@ function media_preview_ajax() {
  * Menu callback; presents the Media editing form for multiple file entities.
  */
 function media_page_multiedit($files) {
+  // Prevent hacking the URL.
   if (!module_exists('multiform')) {
-    drupal_set_message(t('To edit multiple media items, you must install the multiform module.'));
+    drupal_set_message(t('To edit multiple media items, you must install the <a href="!url">multiform module</a>.', array('!url' => 'http://drupal.org/project/multiform')));
+    return t('This page cannot display the current request.');
   }
-  $i = 0;
+  drupal_set_title(t('Editing multiple media files'));
+
   $forms = array();
   foreach ($files as $file) {
-    // To maintain unique form_ids, increment this counter.
-    // @see media_forms().
-    $i++;
-    $forms[] = array("media_edit_$i", $file);
+    // To maintain unique form_ids, append the file id.
+    $forms[] = array('media_edit_' . $file->fid, $file);
   }
 
   $form = call_user_func_array('multiform_get_form', $forms);
   $form['#attributes']['class'][] = 'media-multiedit-form';
 
-  unset($form['buttons']['Delete']);
-  // Would be nice to add this to show a message, but not working.
-  // Can debug.
-  //$form['buttons']['Save']['#submit'][] = 'media_page_multiedit_submit';
+  if (isset($form['buttons']['Delete'])) {
+    unset($form['buttons']['Delete']);
+  }
 
-  drupal_set_title(t('Editing multiple media files'));
   return $form;
 }
 
