@@ -26,15 +26,17 @@ function media_preview_ajax() {
 }
 
 /**
- * Menu callback; presents the Media editing form for multiple file entities.
+ * Menu callback; Edit multiple files on the same page using multiform module.
+ *
+ * @see media_file_operation_edit_multiple()
  */
-function media_page_multiedit($files) {
-  // Prevent hacking the URL.
-  if (!module_exists('multiform')) {
-    drupal_set_message(t('To edit multiple media items, you must install the <a href="!url">multiform module</a>.', array('!url' => 'http://drupal.org/project/multiform')));
-    return t('This page cannot display the current request.');
+function media_file_page_edit_multiple($files) {
+  // @todo When http://drupal.org/node/1227706 is fixed, filter the $files
+  // array using file_access($file, 'edit').
+
+  if (empty($files)) {
+    return MENU_ACCESS_DENIED;
   }
-  drupal_set_title(t('Editing multiple media files'));
 
   $forms = array();
   foreach ($files as $file) {
@@ -45,8 +47,16 @@ function media_page_multiedit($files) {
   $form = call_user_func_array('multiform_get_form', $forms);
   $form['#attributes']['class'][] = 'media-multiedit-form';
 
+  // Add the title to each 'subform'.
+  foreach (element_children($form['multiform']) as $key) {
+    $fid = $form['multiform'][$key]['fid']['#value'];
+    $file = $files[$fid];
+    $title = t('<em>Edit @type</em> @title', array('@type' => $file->type, '@title' => $file->filename));
+    $form['multiform'][$key]['#prefix'] = '<h2>' . $title . '</h2>';
+  }
+
   if (isset($form['buttons']['Delete'])) {
-    unset($form['buttons']['Delete']);
+    $form['buttons']['Delete']['#access'] = FALSE;
   }
 
   return $form;
