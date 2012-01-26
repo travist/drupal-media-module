@@ -112,10 +112,10 @@ function media_menu() {
     'page callback' => 'drupal_get_form',
     'page arguments' => array('file_entity_admin_files'),
     'access arguments' => array('administer files'),
-    'type' => MENU_LOCAL_TASK | MENU_NORMAL_ITEM,
+    'type' => MENU_LOCAL_TASK,
     'file' => 'file_entity.admin.inc',
     'file path' => drupal_get_path('module', 'file_entity'),
-    'weight' => -10,
+    'weight' => 10,
   );
 
   // Used to import files from a local filesystem into Drupal.
