@@ -568,10 +568,11 @@ function media_file_list_element_process($element, $edit, $form_state, $form) {
  */
 function media_library() {
   $path = drupal_get_path('module', 'media');
+  $info = system_get_info('module', 'media');
 
   $common = array(
     'website' => 'http://drupal.org/project/media',
-    'version' => '7.x',
+    'version' => !empty($info['version']) ? $info['version'] : '7.x-2.x',
   );
 
   /**
