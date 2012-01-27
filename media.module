@@ -1150,26 +1150,33 @@ function media_form_file_entity_admin_files_alter(&$form, $form_state) {
   $form['#attached']['css'][] = $path . '/css/media.css';
   media_attach_browser_js($form);
 
-  $menu_item = menu_get_item();
-  if (isset($menu_item['map'][3]) && $menu_item['map'][3] == 'thumbnails') {
-    // By default, this form contains a table select element called "files". For
-    // the 'thumbnails' tab, Media generates a thumbnail for each file and
-    // replaces the tableselect with a grid of thumbnails.
-    $files = $form['#files'];
-    $form['files'] = array(
-      '#tree' => TRUE,
-      '#prefix' => '<div class="media-display-thumbnails media-clear clearfix"><ul class="media-list-thumbnails">',
-      '#suffix' => '</ul></div>',
-    );
 
-    foreach ($files as $file) {
-      $preview = media_get_thumbnail_preview($file, TRUE);
-      $form['files'][$file->fid] = array(
-        '#type' => 'checkbox',
-        '#title' => '',
-        '#prefix' => '<li>' . drupal_render($preview),
-        '#suffix' => '</li>',
+  // By default, this form contains a table select element called "files". For
+  // the 'thumbnails' tab, Media generates a thumbnail for each file and
+  // replaces the tableselect with a grid of thumbnails.
+  if (arg(3) == 'thumbnails') {
+    if (empty($form['#files'])) {
+      // Display empty text if there are no files.
+      $form['files'] = array(
+        '#markup' => '<p>' . $form['files']['#empty'] . '</p>',
       );
+    }
+    else {
+      $form['files'] = array(
+        '#tree' => TRUE,
+        '#prefix' => '<div class="media-display-thumbnails media-clear clearfix"><ul class="media-list-thumbnails">',
+        '#suffix' => '</ul></div>',
+      );
+
+      foreach ($form['#files'] as $file) {
+        $preview = media_get_thumbnail_preview($file, TRUE);
+        $form['files'][$file->fid] = array(
+          '#type' => 'checkbox',
+          '#title' => '',
+          '#prefix' => '<li>' . drupal_render($preview),
+          '#suffix' => '</li>',
+        );
+      }
     }
   }
 }
