@@ -965,14 +965,9 @@ function _media_save_file_permenently(&$file) {
  *   Renderable array.
  */
 function media_get_thumbnail_preview($file, $link = NULL) {
-  // Adjust files that do not use a media type to use 'default'.
-  static $media_types;
-  if (!isset($media_types)) {
-    $media_types = media_type_get_types();
-  }
-  if (!isset($media_types[$file->type])) {
-    $file = clone $file;
-    $file->type = 'default';
+  // If a file has an invalid type, allow file_view_file() to work.
+  if (!file_info_file_types($file->type)) {
+    $file->type = file_get_type($file);
   }
 
   $preview = file_view_file($file, 'media_preview');
@@ -1149,7 +1144,6 @@ function media_form_file_entity_admin_files_alter(&$form, $form_state) {
   $form['#attached']['js'][] = $path . '/js/media.admin.js';
   $form['#attached']['css'][] = $path . '/css/media.css';
   media_attach_browser_js($form);
-
 
   // By default, this form contains a table select element called "files". For
   // the 'thumbnails' tab, Media generates a thumbnail for each file and
