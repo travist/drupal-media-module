@@ -501,6 +501,7 @@ function media_form_file_entity_edit_alter(&$form, &$form_state) {
 
     // Convert the cancel link to a button which triggers a modal close.
     $form['actions']['cancel']['#attributes']['class'][] = 'button';
+    $form['actions']['cancel']['#attributes']['class'][] = 'button-no';
     $form['actions']['cancel']['#attributes']['class'][] = 'ctools-close-modal';
   }
 }
