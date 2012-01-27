@@ -67,7 +67,7 @@ Drupal.behaviors.mediaElement = {
           removeButton.hide();
         }
         else {
-          editButton.attr('href', editButton.attr('href').replace(/media\/.*\/edit/, 'media/' + fidField.val() + '/edit'));
+          editButton.attr('href', editButton.attr('href').replace(/media\/\d+\/edit/, 'media/' + fidField.val() + '/edit'));
 
           // Re-process the edit link through CTools modal behaviors.
           editButton.unbind('click');
