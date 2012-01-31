@@ -53,11 +53,23 @@ function media_file_page_edit_multiple($files) {
     $file = $files[$fid];
     $title = t('<em>Edit @type</em> @title', array('@type' => $file->type, '@title' => $file->filename));
     $form['multiform'][$key]['#prefix'] = '<h2>' . $title . '</h2>';
+    $form['multiform'][$key]['actions']['#access'] = FALSE;
   }
 
   if (isset($form['buttons']['Delete'])) {
     $form['buttons']['Delete']['#access'] = FALSE;
   }
+
+  // Add a cancel button at the bottom of the form.
+  $form['buttons']['cancel'] = array(
+    '#type' => 'link',
+    '#title' => t('Cancel'),
+    '#href' => isset($_GET['destination']) ? $_GET['destination'] : 'admin/content/file',
+    '#weight' => 50,
+  );
+
+  // Override the page title since each file form sets a title.
+  drupal_set_title(t('Edit multiple files'));
 
   return $form;
 }
