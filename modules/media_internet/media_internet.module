@@ -9,7 +9,7 @@ function media_internet_menu() {
     'description' => 'Add internet files to your media library.',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('media_internet_add'),
-    'access arguments' => array('administer files'),
+    'access callback' => 'media_internet_access',
     'type' => MENU_LOCAL_TASK,
   );
 
