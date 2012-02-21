@@ -319,6 +319,5 @@ function mediafield_field_update_instance($instance, $prior_instance) {
 function mediafield_views_api() {
   return array(
     'api' => 3,
-    'path' => drupal_get_path('module', 'media'),
   );
 }
