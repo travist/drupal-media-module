@@ -29,6 +29,23 @@ require_once (dirname(__FILE__) . '/includes/media.filter.inc');
 /* ***************************************** */
 
 /**
+ * Implements hook_hook_info().
+ */
+function media_hook_info() {
+  $hooks = array(
+    'media_parse',
+    'media_browser_plugin_info',
+    'media_browser_plugin_info_alter',
+    'media_browser_plugins_alter',
+    'media_browser_params_alter',
+    'media_wysiwyg_allowed_view_modes_alter',
+    'media_format_form_prepare_alter',
+  );
+
+  return array_fill_keys($hooks, array('group' => 'media'));
+}
+
+/**
  * Implements hook_help().
  */
 function media_help($path, $arg) {

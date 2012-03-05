@@ -1,6 +1,17 @@
 <?php
 
 /**
+ * Implements hook_hook_info().
+ */
+function media_internet_hook_info() {
+  $hooks = array(
+    'media_internet_providers',
+  );
+
+  return array_fill_keys($hooks, array('group' => 'media'));
+}
+
+/**
  * Implements hook_menu().
  */
 function media_internet_menu() {
