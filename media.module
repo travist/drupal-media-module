@@ -1073,24 +1073,6 @@ function media_flush_caches() {
 }
 
 /**
- * Implements hook_ctools_plugin_type().
- */
-function media_ctools_plugin_type() {
-  return array(
-    'browser' => array(
-      'version' => 1,
-      // Cache plugin information?
-      'cache' => TRUE,
-      // Which plugin info array keys contain classes?
-      'classes' => array('handler'),
-      // CTools will call hook_mymodule_myplugintype() to discover plugins.
-      'use hooks' => TRUE,
-      'hook' => 'media_browser_plugin_info',
-    ),
-  );
-}
-
-/**
  * Implements hook_ctools_plugin_api().
  *
  * Lets CTools know which plugin APIs are implemented by Media module.
@@ -1101,43 +1083,26 @@ function media_ctools_plugin_api($module, $api) {
       'version' => 1,
     );
   }
-
-  if ($module == 'media' && $api == 'browser') {
-    return array(
-      'version' => 1,
-      'path' => drupal_get_path('module', 'media') . '/includes',
-    );
-  }
 }
 
 /**
  * Implements hook_media_browser_plugin_info().
  */
 function media_media_browser_plugin_info() {
-  $plugins = array();
-
-  $plugins['upload'] = array(
+  $info['upload'] = array(
     'title' => t('Upload'),
     'weight' => -10,
-    'handler' => array(
-      'path' => drupal_get_path('module', 'media') . '/includes',
-      'file' => 'MediaBrowserUpload.inc',
-      'class' => 'MediaBrowserUpload',
-    ),
+    'class' => 'MediaBrowserUpload',
     // @todo Replace with appropriate file access function when that gets
     //   committed to File Entity project.
     'access callback' => 'media_access',
     'access arguments' => array('edit'),
   );
 
-  $plugins['library'] = array(
+  $info['library'] = array(
     'title' => t('Library'),
     'weight' => 10,
-    'handler' => array(
-      'path' => drupal_get_path('module', 'media') . '/includes',
-      'file' => 'MediaBrowserLibrary.inc',
-      'class' => 'MediaBrowserLibrary',
-    ),
+    'class' => 'MediaBrowserLibrary',
     // @todo Replace with appropriate file access function when that gets
     //   committed to File Entity project.
     'access callback' => 'media_access',
@@ -1152,14 +1117,10 @@ function media_media_browser_plugin_info() {
         if (!empty($display->display_options['title'])) {
           $title = $display->display_options['title'];
         }
-        $plugins["{$view->name}--{$display->id}"] = array(
+        $info["{$view->name}--{$display->id}"] = array(
           'title' => $title,
           'weight' => 11, // @TODO make this configurable.
-          'handler' => array(
-            'path' => drupal_get_path('module', 'media') . '/includes',
-            'file' => 'MediaBrowserView.inc',
-            'class' => 'MediaBrowserView',
-          ),
+          'class' => 'MediaBrowserView',
           'view_name' => $view->name,
           'view_display_id' => $display->id,
         );
@@ -1167,7 +1128,7 @@ function media_media_browser_plugin_info() {
     }
   }
 
-  return $plugins;
+  return $info;
 }
 
 /**
@@ -1283,4 +1244,28 @@ function media_load_all_exports($module, $directory, $extension, $name = NULL) {
   }
 
   return $return;
+}
+
+/**
+ * Returns metadata describing Media browser plugins.
+ *
+ * @see hook_media_browser_plugin_info()
+ * @see hook_media_browser_plugin_info_alter()
+ */
+function media_get_browser_plugin_info() {
+  $info = &drupal_static(__FUNCTION__);
+
+  if (!isset($info)) {
+    $cid = 'media:browser:plugin:info:' . $GLOBALS['language']->language;
+    if ($cache = cache_get($cid)) {
+      $info = $cache->data;
+    }
+    else {
+      $info = module_invoke_all('media_browser_plugin_info');
+      drupal_alter('media_browser_plugin_info_alter', $info);
+      cache_set($cid, $info);
+    }
+  }
+
+  return $info;
 }

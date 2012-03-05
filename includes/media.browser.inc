@@ -46,8 +46,7 @@ function media_browser($selected = NULL) {
     return $output;
   }
 
-  ctools_include('plugins');
-  $plugins = ctools_get_plugins('media', 'browser');
+  $plugins = media_get_browser_plugin_info();
 
   // Allow parameters to provide a list of enabled or disabled media browser plugins.
   if (!empty($params['enabledPlugins'])) {
@@ -60,19 +59,31 @@ function media_browser($selected = NULL) {
   // Render plugins.
   $plugin_output = array();
   foreach ($plugins as $key => &$plugin) {
-    if ($plugin_class = ctools_plugin_get_class($plugin, 'handler')) {
-      $access = TRUE;
-      if (isset($plugin['access callback']) && ($callback = $plugin['access callback']) && function_exists($callback)) {
-        $arguments = (isset($plugin['access arguments']) ? $plugin['access arguments'] : array());
-        $access = call_user_func_array($callback, $arguments);
+    // Support the old CTools style handler definition.
+    if (!isset($plugin['class']) && !empty($plugin['handler'])) {
+      if (is_string($plugin['handler'])) {
+        $plugin['class'] = $plugin['handler'];
       }
-      if ($access) {
-        $plugin_obj = new $plugin_class($plugin, $params);
-        $plugin_output[$key] = $plugin_obj->view() + array(
-          '#title' => $plugin['title'],
-          '#weight' => isset($plugin['weight']) ? $plugin['weight'] : 0,
-        );
+      elseif (isset($plugin['handler']['class'])) {
+        $plugin['class'] = $plugin['handler']['class'];
       }
+    }
+
+    if (empty($plugin['class']) || !class_exists($plugin['class'])) {
+      continue;
+    }
+
+    $access = TRUE;
+    if (isset($plugin['access callback']) && ($callback = $plugin['access callback']) && function_exists($callback)) {
+      $arguments = (isset($plugin['access arguments']) ? $plugin['access arguments'] : array());
+      $access = call_user_func_array($callback, $arguments);
+    }
+    if ($access) {
+      $plugin_obj = new $plugin['class']($plugin, $params);
+      $plugin_output[$key] = $plugin_obj->view() + array(
+        '#title' => $plugin['title'],
+        '#weight' => isset($plugin['weight']) ? $plugin['weight'] : 0,
+      );
     }
 
     // We need to get a submit and cancel button on each tab. If the plugin

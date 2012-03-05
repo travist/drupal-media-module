@@ -17,31 +17,16 @@ function media_internet_menu() {
 }
 
 /**
- * Implements hook_ctools_plugin_api().
- */
-function media_internet_ctools_plugin_api($module, $api) {
-  if ($module == 'media' && $api == 'browser') {
-    return array(
-      'version' => 1,
-    );
-  }
-}
-
-/**
  * Implements hook_media_browser_plugin_info().
  */
 function media_internet_media_browser_plugin_info() {
-  $plugins = array();
-  $plugins['media_internet'] = array(
+  $info['media_internet'] = array(
     'title' => t('Web'),
-    'handler' => array(
-      'path' => drupal_get_path('module', 'media_internet') . '/includes',
-      'file' => 'MediaBrowserInternet.inc',
-      'class' => 'MediaBrowserInternet',
-    ),
+    'class' => 'MediaBrowserInternet',
     'access callback' => 'media_internet_access',
   );
-  return $plugins;
+
+  return $info;
 }
 
 /**
