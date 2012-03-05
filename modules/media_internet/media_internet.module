@@ -28,19 +28,6 @@ function media_internet_menu() {
 }
 
 /**
- * Implements hook_media_browser_plugin_info().
- */
-function media_internet_media_browser_plugin_info() {
-  $info['media_internet'] = array(
-    'title' => t('Web'),
-    'class' => 'MediaBrowserInternet',
-    'access callback' => 'media_internet_access',
-  );
-
-  return $info;
-}
-
-/**
  * Access callback for the media_internet media browser plugin.
  */
 function media_internet_access() {
@@ -233,20 +220,30 @@ function media_internet_add_submit($form, &$form_state) {
  * and store it as a file object in file_managed.
  */
 function media_internet_get_providers() {
-  $providers = &drupal_static(__FUNCTION__, array());
-  if (!$providers) {
-    foreach (module_implements('media_internet_providers') as $module) {
-      foreach (module_invoke($module, 'media_internet_providers') as $key => $provider) {
-        // Store the module here too for convinience.
-        $providers[$key] = $provider;
-        $providers[$key]['module'] = $module;
-        if (!isset($providers[$key]['weight'])) {
-          $providers[$key]['weight'] = 0;
+  $providers = &drupal_static(__FUNCTION__);
+
+  if (!isset($providers)) {
+    $cid = 'media:internet:providers';
+    if ($cache = cache_get($cid)) {
+      $providers = $cache->data;
+    }
+    else {
+      $providers = array();
+      foreach (module_implements('media_internet_providers') as $module) {
+        foreach (module_invoke($module, 'media_internet_providers') as $key => $provider) {
+          // Store the module here too for convinience.
+          $providers[$key] = $provider;
+          $providers[$key]['module'] = $module;
+          if (!isset($providers[$key]['weight'])) {
+            $providers[$key]['weight'] = 0;
+          }
         }
       }
+      uasort($providers, 'drupal_sort_weight');
+      cache_set($cid, $providers);
     }
-    uasort($providers, 'drupal_sort_weight');
   }
+
   return $providers;
 }
 
@@ -268,23 +265,6 @@ function media_internet_get_provider($embed_string) {
     }
   }
   throw new MediaInternetNoHandlerException(t('Unable to handle the provided embed string or URL.'));
-}
-
-/**
- * Implements hook_media_internet_providers();
- *
- * Provides a very basic handler which coppies files from remote sources to the
- * local files directory.
- */
-function media_internet_media_internet_providers() {
-  return array(
-    'MediaInternetFileHandler' => array(
-      'title' => 'Files',
-      'hidden' => TRUE,
-      // Make it go last.
-      'weight' => 10000,
-    ),
-  );
 }
 
 class MediaInternetFileHandler extends MediaInternetBaseHandler {
