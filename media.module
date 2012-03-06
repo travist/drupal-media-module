@@ -1233,7 +1233,7 @@ function media_get_browser_plugin_info() {
     }
     else {
       $info = module_invoke_all('media_browser_plugin_info');
-      drupal_alter('media_browser_plugin_info_alter', $info);
+      drupal_alter('media_browser_plugin_info', $info);
       cache_set($cid, $info);
     }
   }
