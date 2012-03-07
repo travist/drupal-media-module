@@ -40,6 +40,7 @@ function media_hook_info() {
     'media_browser_params_alter',
     'media_wysiwyg_allowed_view_modes_alter',
     'media_format_form_prepare_alter',
+    'media_token_to_markup_alter',
   );
 
   return array_fill_keys($hooks, array('group' => 'media'));
