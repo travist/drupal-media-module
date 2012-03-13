@@ -80,10 +80,17 @@ function media_browser($selected = NULL) {
     }
     if ($access) {
       $plugin_obj = new $plugin['class']($plugin, $params);
-      $plugin_output[$key] = $plugin_obj->view() + array(
-        '#title' => $plugin['title'],
-        '#weight' => isset($plugin['weight']) ? $plugin['weight'] : 0,
-      );
+      $plugin_output[$key] = $plugin_obj->view();
+      if (!empty($plugin_output[$key]) && is_array($plugin_output[$key])) {
+        $plugin_output[$key] += array(
+          '#title' => $plugin['title'],
+          '#weight' => isset($plugin['weight']) ? $plugin['weight'] : 0,
+        );
+      }
+      else {
+        unset($plugin_output[$key]);
+        continue;
+      }
     }
 
     // We need to get a submit and cancel button on each tab. If the plugin
@@ -408,68 +415,4 @@ function media_browser_build_media_item($file) {
   $preview = media_get_thumbnail_preview($file);
   $file->preview = drupal_render($preview);
   $file->url = file_create_url($file->uri);
-}
-
-/**
- * Base class for media browser plugins.
- *
- * This is basically just API documentation.
- */
-class MediaBrowserPlugin {
-
-  // Plugin info array.
-  var $info;
-
-  // Browser instance parameters.
-  var $params;
-
-  /**
-   * Set up the plugin class.
-   *
-   * @param $info
-   *   An array of plugin info from hook_media_browser_plugin_info()
-   *   implementations.
-   * @param $params
-   *   An array of parameters which came in is $_GET['params']. The expected
-   *   parameters are still being defined.
-   *   - types: array of media types to support
-   *   - multiselect: boolean; TRUE enables multiselect
-   */
-  function __construct($info, $params) {
-    $this->info = $info;
-    $this->params = $params;
-  }
-
-  /**
-   * Provide a render array to display the plugin in a media browser.
-   *
-   * This render array will be a jQuery tab in the media browser.
-   *
-   * Some elements are special:
-   *  - #settings: Drupal.settings.media.browser.$key (where key is the array key).
-   *  - #callback: If provided, will make the tab an "ajax" tab.
-   *
-   * Example:
-   * @code
-   *  return array(
-   *    '#attached' => array(
-   *      'js' => array(
-   *         drupal_get_path('module', 'media') . '/js/plugins/media.library.js',
-   *       ),
-   *     ),
-   *     '#settings' => array(
-   *       'viewMode' => 'thumbnails',
-   *       'getMediaUrl' => url('media/browser/list'),
-   *     ),
-   *     '#markup' => '<div>Library goes here</div>',
-   * );
-   * @endcode
-   *
-   * @return
-   *  Renderable array.
-   */
-  function view() {
-    return array('#markup' => '');
-  }
-
 }

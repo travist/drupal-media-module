@@ -9,7 +9,8 @@ dependencies[] = views
 
 files[] = includes/MediaReadOnlyStreamWrapper.inc
 
-files[] = includes/media.browser.inc
+files[] = includes/MediaBrowserPluginInterface.inc
+files[] = includes/MediaBrowserPlugin.inc
 files[] = includes/MediaBrowserLibrary.inc
 files[] = includes/MediaBrowserUpload.inc
 files[] = includes/MediaBrowserView.inc
