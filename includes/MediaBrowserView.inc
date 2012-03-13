@@ -44,6 +44,12 @@ class MediaBrowserView extends MediaBrowserPlugin {
   public function view() {
     if (!empty($this->view)) {
       $build['#markup'] = $this->view->preview();
+
+      // Allow the View title to override the plugin title.
+      if ($title = $this->view->get_title()) {
+        $build['#title'] = $title;
+      }
+
       return $build;
     }
   }
