@@ -10,6 +10,13 @@
  */
 class MediaBrowserInternet extends MediaBrowserPlugin {
   /**
+   * Implements MediaBrowserPluginInterface::access().
+   */
+  public function access($account = NULL) {
+    return media_internet_access($account);
+  }
+
+  /**
    * Implements MediaBrowserPlugin::view().
    */
   public function view() {

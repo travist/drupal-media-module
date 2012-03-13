@@ -30,8 +30,8 @@ function media_internet_menu() {
 /**
  * Access callback for the media_internet media browser plugin.
  */
-function media_internet_access() {
-  return user_access('administer media') || user_access('add media from remote sources');
+function media_internet_access($account = NULL) {
+  return user_access('administer media', $account) || user_access('add media from remote sources', $account);
 }
 
 /**
@@ -48,6 +48,8 @@ function media_internet_permission() {
 
 /**
  * Provides a form for adding media items from 3rd party sources.
+ *
+ * @todo Convert the form arguments to just one array of options/parameters.
  */
 function media_internet_add($form, &$form_state = array(), $types = NULL) {
   $form['embed_code'] = array(

@@ -12,7 +12,6 @@ function media_internet_media_browser_plugin_info() {
   $info['media_internet'] = array(
     'title' => t('Web'),
     'class' => 'MediaBrowserInternet',
-    'access callback' => 'media_internet_access',
   );
 
   return $info;
