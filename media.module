@@ -138,15 +138,15 @@ function media_menu() {
 
   // Used to import files from a local filesystem into Drupal.
   $items['admin/content/file/import'] = array(
-    'title' => 'Import media',
+    'title' => 'Import files',
     'description' => 'Import files into your media library.',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('media_import'),
     'access arguments' => array('import media'),
     'type' => MENU_LOCAL_ACTION,
     'file' => 'includes/media.admin.inc',
+    'weight' => 10,
   );
-
   $items['admin/content/file/thumbnails/import'] = $items['admin/content/file/import'];
 
   $items['media/browser'] = array(
@@ -260,13 +260,13 @@ function media_menu() {
  */
 function media_menu_local_tasks_alter(&$data, $router_item, $root_path) {
   // Add action link to 'file/add' on 'admin/content/file' page.
-  if ($root_path == 'admin/content/file') {
+  if ($root_path == 'admin/content/file' || $root_path == 'admin/content/file/thumbnails') {
     $item = menu_get_item('file/add');
-    if ($item['access']) {
+    if (!empty($item['access'])) {
       $data['actions']['output'][] = array(
         '#theme' => 'menu_local_action',
         '#link' => $item,
-        '#weight' => -10,
+        '#weight' => $item['weight'],
       );
     }
   }

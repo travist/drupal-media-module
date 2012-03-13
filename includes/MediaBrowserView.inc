@@ -41,7 +41,7 @@ class MediaBrowserView extends MediaBrowserPlugin {
   /**
    * Implements MediaBrowserPlugin::view().
    */
-  function view() {
+  public function view() {
     if (!empty($this->view)) {
       $build['#markup'] = $this->view->preview();
       return $build;

@@ -37,4 +37,7 @@ interface MediaBrowserPluginInterface {
    *   TRUE if the user can access this plugin, or FALSE otherwise.
    */
   public function access($account = NULL);
+
+  // The view() method is an abstract function so it is defined in MediaBrowserPlugin.
+  // public function view();
 }
