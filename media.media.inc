@@ -13,20 +13,12 @@ function media_media_browser_plugin_info() {
     'title' => t('Upload'),
     'weight' => -10,
     'class' => 'MediaBrowserUpload',
-    // @todo Replace with appropriate file access function when that gets
-    //   committed to File Entity project.
-    'access callback' => 'media_access',
-    'access arguments' => array('edit'),
   );
 
   $info['library'] = array(
     'title' => t('Library'),
     'weight' => 10,
     'class' => 'MediaBrowserLibrary',
-    // @todo Replace with appropriate file access function when that gets
-    //   committed to File Entity project.
-    'access callback' => 'media_access',
-    'access arguments' => array('view'),
   );
 
   // Add a plugin for each View display using the 'media_browser' display type.

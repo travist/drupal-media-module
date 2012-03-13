@@ -58,33 +58,28 @@ function media_browser($selected = NULL) {
 
   // Render plugins.
   $plugin_output = array();
-  foreach ($plugins as $key => &$plugin) {
+  foreach ($plugins as $key => $plugin_info) {
     // Support the old CTools style handler definition.
-    if (!isset($plugin['class']) && !empty($plugin['handler'])) {
+    if (!isset($plugin_info['class']) && !empty($plugin_info['handler'])) {
       if (is_string($plugin['handler'])) {
-        $plugin['class'] = $plugin['handler'];
+        $plugin_info['class'] = $plugin_info['handler'];
       }
       elseif (isset($plugin['handler']['class'])) {
-        $plugin['class'] = $plugin['handler']['class'];
+        $plugin_info['class'] = $plugin_info['handler']['class'];
       }
     }
 
-    if (empty($plugin['class']) || !class_exists($plugin['class'])) {
+    if (empty($plugin_info['class']) || !class_exists($plugin_info['class'])) {
       continue;
     }
 
-    $access = TRUE;
-    if (isset($plugin['access callback']) && ($callback = $plugin['access callback']) && function_exists($callback)) {
-      $arguments = (isset($plugin['access arguments']) ? $plugin['access arguments'] : array());
-      $access = call_user_func_array($callback, $arguments);
-    }
-    if ($access) {
-      $plugin_obj = new $plugin['class']($plugin, $params);
-      $plugin_output[$key] = $plugin_obj->view();
+    $plugin = new $plugin_info['class']($plugin_info, $params);
+    if ($plugin->access()) {
+      $plugin_output[$key] = $plugin->view();
       if (!empty($plugin_output[$key]) && is_array($plugin_output[$key])) {
         $plugin_output[$key] += array(
-          '#title' => $plugin['title'],
-          '#weight' => isset($plugin['weight']) ? $plugin['weight'] : 0,
+          '#title' => $plugin_info['title'],
+          '#weight' => isset($plugin_info['weight']) ? $plugin_info['weight'] : 0,
         );
       }
       else {
@@ -92,19 +87,19 @@ function media_browser($selected = NULL) {
         continue;
       }
     }
+    else {
+      continue;
+    }
 
     // We need to get a submit and cancel button on each tab. If the plugin
     // is not returning a form element we need to add a submit button.
     // This is a fairly broad assumption.
     if (empty($plugin_output[$key]['#form']) && !empty($plugin_output[$key]['#markup'])) {
-      $plugin_output[$key]['#markup'] .= '<div class="form-actions form-wrapper">';
-      $plugin_output[$key]['#markup'] .= l(t('Submit'), '', array(
-        'attributes' => array('class' => array('button', 'button-yes', 'fake-submit', $key))
-      ));
-      $plugin_output[$key]['#markup'] .= l(t('Cancel'), '', array(
-      'attributes' => array('class' => array('button', 'button-no', 'fake-cancel', $key))
-      ));
-      $plugin_output[$key]['#markup'] .= '</div>';
+      $fake_buttons = '<div class="form-actions form-wrapper">';
+      $fake_buttons .= l(t('Submit'), '', array('attributes' => array('class' => array('button', 'button-yes', 'fake-submit', $key))));
+      $fake_buttons .= l(t('Cancel'), '', array('attributes' => array('class' => array('button', 'button-no', 'fake-cancel', $key))));
+      $fake_buttons .= '</div>';
+      $plugin_output[$key]['#markup'] .= $fake_buttons;
     }
 
     // I'm not sure if it is ever the case that a plugin form will ever have
@@ -127,29 +122,28 @@ function media_browser($selected = NULL) {
   drupal_alter('media_browser_plugins', $plugin_output);
 
   $tabs = array(); // List of tabs to render.
-
   $settings = array('media' => array('browser' => array()));
-  $browser_settings =& $settings['media']['browser'];
 
-  //@todo: replace with Tabs module if it gets upgraded.
   foreach (element_children($plugin_output, TRUE) as $key) {
-    $plugin =& $plugin_output[$key];
-
-    //Add any JS settings
-    $browser_settings[$key] = isset($plugin['#settings']) ? $plugin['#settings'] : array();
+    // Add any JavaScript settings from the browser tab.
+    if (!empty($plugin_output[$key]['#settings'])) {
+      $settings['media']['browser'][$key] = $plugin_output[$key]['#settings'];
+    }
 
     // If this is a "ajax" style tab, add the href, otherwise an id.
-    $href = isset($plugin['#callback']) ? $plugin['#callback'] : "#media-tab-$key";
-    $tabs[] = "<a href='$href'><span>" . check_plain($plugins[$key]['title']) . "</span></a>";
+    $href = '#media-tab-' . $key;
+    if (!empty($plugin_output[$key]['#callback'])) {
+      $href = $plugin_output[$key]['#callback'];
+    }
+    else {
+      // Create a div for each tab's content.
+      $plugin_output[$key] += array(
+        '#prefix' => '<div class="media-browser-tab" id="media-tab-' . check_plain($key) . '">',
+        '#suffix' => '</div>',
+      );
+    }
 
-    // Create a div for each tab's content.
-    $plugin['#prefix'] = <<<EOS
-    <div class="media-browser-tab" id="media-tab-$key">
-EOS;
-    $plugin['#suffix'] = <<<EOS
-    </div>
-    <!-- End #media-tab-$key -->
-EOS;
+    $tabs[] = "<a href='$href'><span>" . check_plain($plugin_output[$key]['#title']) . "</span></a>";
   }
 
   drupal_add_js($settings, 'setting');

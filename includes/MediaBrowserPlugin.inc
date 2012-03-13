@@ -35,6 +35,20 @@ abstract class MediaBrowserPlugin implements MediaBrowserPluginInterface {
   }
 
   /**
+   * Implements MediaBrowserPluginInterface::access().
+   */
+  public function access($account = NULL) {
+    // Backwards compatible support for 'access callback' definitions.
+    if (isset($this->info['access callback'])) {
+      $access_callback = $this->info['access callback'];
+      $access_arguments = isset($this->info['access arguments']) ? $this->info['access arguments'] : array();
+      return function_exists($access_callback) && call_user_func_array($access_callback, $access_arguments);
+    }
+
+    return TRUE;
+  }
+
+  /**
    * Provide a render array to display the plugin in a media browser.
    *
    * This render array will be a jQuery tab in the media browser.

@@ -25,4 +25,16 @@ interface MediaBrowserPluginInterface {
    *   - 'multiselect': boolean; TRUE enables multiselect
    */
   public function __construct($info, $params);
+
+  /**
+   * Check if a user can access this plugin.
+   *
+   * @param object $account
+   *   An optional user account object from user_load(). Defaults to the current
+   *   global user.
+   *
+   * @return boolean
+   *   TRUE if the user can access this plugin, or FALSE otherwise.
+   */
+  public function access($account = NULL);
 }

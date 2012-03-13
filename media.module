@@ -88,8 +88,8 @@ function media_entity_info_alter(&$entity_info) {
  * This duplicates file_entity_access() and should be removed when the File
  * Entity module provides an access API.
  */
-function media_access($op) {
-  return (user_access('administer files') || user_access($op . ' file'));
+function media_access($op, $account = NULL) {
+  return (user_access('administer files', $account) || user_access($op . ' file', $account));
 }
 
 /**
