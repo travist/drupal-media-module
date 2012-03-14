@@ -61,10 +61,10 @@ function media_browser($selected = NULL) {
   foreach ($plugins as $key => $plugin_info) {
     // Support the old CTools style handler definition.
     if (!isset($plugin_info['class']) && !empty($plugin_info['handler'])) {
-      if (is_string($plugin['handler'])) {
+      if (is_string($plugin_info['handler'])) {
         $plugin_info['class'] = $plugin_info['handler'];
       }
-      elseif (isset($plugin['handler']['class'])) {
+      elseif (isset($plugin_info['handler']['class'])) {
         $plugin_info['class'] = $plugin_info['handler']['class'];
       }
     }
