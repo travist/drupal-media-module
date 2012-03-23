@@ -289,3 +289,62 @@ function theme_media_formatter_large_icon($variables) {
   }
   return theme('image', $variables);
 }
+
+
+/**
+ * Theme a media player.
+ */
+function theme_media_player($variables) {
+
+  // Get the element for this player.
+  if (isset($variables['element'])) {
+    $element = &$variables['element'];
+  }
+  else {
+    $element &$variables;
+  }
+
+  // Get the settings.
+  $settings = $element['#settings'];
+  $attributes = $element['#attributes'];
+
+  // Check to make sure there are sources.
+  if (empty($element['#sources'])) {
+    return 'No media sources provided';
+  }
+
+  // Set the value.
+  $element['#value'] = '';
+
+  // Iterate through each of the sources and create a source for that file.
+  foreach ($element['#sources'] as $delta => $file) {
+
+    // Ensure it is an object.
+    $file = (object)$file;
+
+    // Gets the source of this media.
+    if ($source = media_file_get_source($file)) {
+
+      // Get the source attributes.
+      $source_attributes = array('src' => $source);
+
+      // Add the sources to the #value of the media tag.
+      $element['#value'] .= theme('html_tag', array(
+        'element' => array(
+          '#tag' => 'source',
+          '#attributes' => $source_attributes
+        )
+      ));
+    }
+  }
+
+  // Add some variables that the template needs.
+  $variables['player'] = theme('html_tag', $variables);
+  $variables['settings'] = $settings;
+
+  // Register the media player in JavaScript.
+  media_register_player($settings, $attributes);
+
+  // Return the theme for our media player.
+  return theme('media_player_' . $settings['template'], $variables);
+}

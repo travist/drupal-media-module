@@ -44,8 +44,134 @@ function media_field_formatter_info() {
       'label' => t('Large filetype icon'),
       'field types' => array('file'),
     ),
+    'media_player' => array(
+      'label' => t('Media Player'),
+      'description' => t('Play this file within a Media Player.'),
+      'field types' => array('file', 'text'),
+      'settings' => array(
+        'template' => 'default',
+        'preload' => TRUE,
+        'autoplay' => FALSE,
+        'loop' => FALSE,
+        'width' => '100%',
+        'height' => '400px',
+        'volume' => 80,
+        'sources' => FALSE,
+        'debug' => FALSE
+      )
+    ),
   );
   return $formatters;
+}
+
+/**
+ * Implements hook_field_formatter_settings_form
+ */
+function media_field_formatter_settings_form($field, $instance, $view_mode, $form, &$form_state) {
+  $display = $instance['display'][$view_mode];
+  $settings = $display['settings'];
+  $element = array();
+  if ($display['type'] == 'media_player') {
+
+    // Get the player information and templates.
+    $info = media_get_player_info();
+    $templates = array_keys($info['templates']);
+    $templates = array_combine($templates, $templates);
+
+    $element['template'] = array(
+      '#title' => t('Template'),
+      '#type' => 'select',
+      '#options' => $templates,
+      '#default_value' => $settings['template']
+    );
+
+    $element['preload'] = array(
+      '#title' => t('Preload'),
+      '#type' => 'checkbox',
+      '#default_value' => $settings['preload']
+    );
+
+    $element['autoplay'] = array(
+      '#title' => t('Autoplay'),
+      '#type' => 'checkbox',
+      '#default_value' => $settings['autoplay']
+    );
+
+    $element['loop'] = array(
+      '#title' => t('Loop'),
+      '#type' => 'checkbox',
+      '#default_value' => $settings['loop']
+    );
+
+    $element['width'] = array(
+      '#title' => t('Width'),
+      '#type' => 'textfield',
+      '#default_value' => $settings['width']
+    );
+
+    $element['height'] = array(
+      '#title' => t('Height'),
+      '#type' => 'textfield',
+      '#default_value' => $settings['height']
+    );
+
+    $element['volume'] = array(
+      '#title' => t('Initial Volume (0 - 100)'),
+      '#type' => 'textfield',
+      '#default_value' => $settings['volume']
+    );
+
+    $element['sources'] = array(
+      '#title' => t('Allow multiple sources'),
+      '#description' => t('Checking this will turn multiple instances of files into multiple sources within the media element.'),
+      '#type' => 'checkbox',
+      '#default_value' => $settings['sources']
+    );
+
+    $element['debug'] = array(
+      '#title' => t('Debug Mode'),
+      '#type' => 'checkbox',
+      '#default_value' => $settings['debug']
+    );
+  }
+  return $element;
+}
+
+/**
+ * Implements hook_field_formatter_settings_summary
+ */
+function media_field_formatter_settings_summary($field, $instance, $view_mode) {
+  $display = $instance['display'][$view_mode];
+  $settings = $display['settings'];
+  $summary = '';
+  if ($display['type'] == 'media_player') {
+    $header = array('Setting', 'Value');
+    $rows = array();
+    foreach ($settings as $name => $value) {
+      $rows[] = array($name, $value);
+    }
+    $summary = theme('table', array('header' => $header, 'rows' => $rows));
+  }
+  return $summary;
+}
+
+/**
+ * Returns the settings for this video or audio element.
+ */
+function media_player_get_attributes($settings) {
+  $attributes = array();
+  $element_settings = array('preload', 'autoplay', 'loop');
+  foreach ($settings as $name => $value) {
+    if ($value && in_array($name, $element_settings)) {
+      $attributes[$name] = NULL;
+    }
+  }
+
+  // Set the ID, width and height.
+  $attributes['id'] = $settings['id'] . '-player';
+  $attributes['width'] = '100%';
+  $attributes['height'] = '100%';
+  return $attributes;
 }
 
 /**
@@ -56,14 +182,64 @@ function media_field_formatter_info() {
  */
 function media_field_formatter_view($entity_type, $entity, $field, $instance, $langcode, $items, $display) {
   $element = array();
+  switch ($display['type']) {
+    case 'media_large_icon':
+      foreach ($items as $delta => $item) {
+        $element[$delta] = array(
+          '#theme' => 'media_formatter_large_icon',
+          '#file' => (object) $item,
+        );
+      }
+      break;
+    case 'media_player':
+      // Get the display settings.
+      $settings = $display['settings'];
 
-  if ($display['type'] == 'media_large_icon') {
-    foreach ($items as $delta => $item) {
-      $element[$delta] = array(
-        '#theme' => 'media_formatter_large_icon',
-        '#file' => (object) $item,
-      );
-    }
+      // Get the ID for this media player.
+      $id = 'player-' . drupal_clean_css_identifier($field['field_name']);
+
+      // If they wish to show all sources within a single media element.
+      if ($settings['sources']) {
+
+        // Get the media tag.
+        $mediatag = '';
+        foreach ($items as $delta => $item) {
+          if ($mediatag = media_get_media_type((object)$item)) {
+            break;
+          }
+        }
+
+        // If the mediatag exists, then theme the player.
+        if ($mediatag) {
+          $settings['id'] = $id;
+          $element[$delta] = array(
+            '#theme' => 'media_player',
+            '#tag' => $mediatag,
+            '#attributes' => media_player_get_attributes($settings),
+            '#settings' => $settings,
+            '#sources' => $items
+          );
+        }
+      }
+      else {
+
+        // Iterate through all the items.
+        foreach ($items as $delta => $item) {
+
+          // Get the media tag.
+          if ($mediatag = media_get_media_type((object)$item)) {
+            $settings['id'] = $id . '-' . $delta;
+            $element[$delta] = array(
+              '#theme' => 'media_player',
+              '#tag' => $mediatag,
+              '#attributes' => media_player_get_attributes($settings),
+              '#settings' => $settings,
+              '#sources' => array($item)
+            );
+          }
+        }
+      }
+      break;
   }
 
   return $element;
